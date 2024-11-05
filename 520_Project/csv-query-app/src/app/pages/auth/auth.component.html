@@ -1,0 +1,11 @@
+<div class="auth-container">
+    <h2>Login</h2>
+    <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
+      <label>Username</label>
+      <input formControlName="username" placeholder="Enter username" />
+      <label>Password</label>
+      <input type="password" formControlName="password" placeholder="Enter password" />
+      <button type="submit" [disabled]="authForm.invalid">Login</button>
+    </form>
+  </div>
+  

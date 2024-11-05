@@ -1,0 +1,17 @@
+<div class="upload-container">
+    <h2>Upload CSV</h2>
+    <input type="file" (change)="onFileChange($event)" />
+    <button (click)="onSubmit()" [disabled]="!fileData">Upload File</button>
+  
+    <div class="query-section">
+      <h3>Enter Query</h3>
+      <input [(ngModel)]="query" placeholder="Type your query here" />
+      <button (click)="onSubmit()">Run Query</button>
+    </div>
+  
+    <div class="result-section">
+      <h3>Query Results</h3>
+      <div *ngIf="queryResult">{{ queryResult }}</div>
+    </div>
+  </div>
+  
