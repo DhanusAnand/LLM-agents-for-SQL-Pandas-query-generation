@@ -1,0 +1,13 @@
+Frontend 
+
+install node.js
+run 
+$ npm install -g @angular/cli
+$ cd csv-query-app
+$ ng serve
+
+
+Backend:
+
+
+pip install Flask boto3 Flask-CORS requests
