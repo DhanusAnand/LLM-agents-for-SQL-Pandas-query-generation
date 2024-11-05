@@ -4,6 +4,7 @@ install node.js
 run 
 $ npm install -g @angular/cli
 $ cd csv-query-app
+$ npm install crypto-js
 $ ng serve
 
 
