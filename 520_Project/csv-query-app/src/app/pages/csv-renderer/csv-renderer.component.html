@@ -1,0 +1,18 @@
+<input type="file" (change)="handleFileInput($event)" />
+
+<table border="1">
+    <thead>
+      <tr>
+        <!-- Display headers dynamically based on the first object keys -->
+        <th *ngFor="let key of csvData[0] | keyvalue">{{ key.key }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Loop through each object in the dataArray -->
+      <tr *ngFor="let item of csvData">
+        <!-- Display each value in the object -->
+        <td *ngFor="let key of item | keyvalue">{{ key.value }}</td>
+      </tr>
+    </tbody>
+  </table>
+  
