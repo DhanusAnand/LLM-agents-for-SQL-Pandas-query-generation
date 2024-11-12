@@ -45,7 +45,7 @@
     <div class="left-section">
       <h2>Upload CSV</h2>
       <input type="file" (change)="onFileChange($event)" />
-      <button (click)="onSubmit()" [disabled]="!fileData">Upload File</button>
+      <button (click)="uploadFile()" [disabled]="!file">Upload File</button>
       <div class="file-info" *ngIf="fileData">
         <h3>Selected File</h3>
         <p>{{ fileData.name }}</p>

@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import boto3
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import requests
 import json
 
@@ -9,12 +10,54 @@ CORS(app)
 
 # Initialize AWS clients
 dynamodb = boto3.resource('dynamodb')
-s3 = boto3.client('s3')
+s3_client = boto3.client('s3')
 
 # Set your DynamoDB table name and S3 bucket name
 DYNAMODB_TABLE_NAME = 'YourDynamoDBTableName'
-S3_BUCKET_NAME = 'YourS3BucketName'
+S3_BUCKET_NAME = 'llm-query-generator'
 LLM_API_URL = 'https://api.your-llm.com/generate'  # Change this to your LLM API endpoint
+
+
+
+
+# Route to get an upload pre-signed URL
+@app.route('/generate-upload-url', methods=['GET'])
+def generate_upload_url():
+    try:
+        filename = request.args.get('filename')
+        params = {
+            'Bucket': S3_BUCKET_NAME,
+            'Key': filename,
+            'ContentType': 'text/csv'
+        }
+        url = s3_client.generate_presigned_url('put_object', Params=params, ExpiresIn=600)
+        return jsonify({'url': url})
+    except (NoCredentialsError, PartialCredentialsError) as e:
+        print(e)
+        return jsonify({'error': 'Credentials error'}), 500
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Error generating upload URL'}), 500
+
+# Route to get pre-signed URL
+@app.route('/generate-view-url', methods=['GET'])
+def generate_view_url():
+    try:
+        filename = request.args.get('filename')
+        params = {
+            'Bucket': S3_BUCKET_NAME,
+            'Key': filename
+        }
+        url = s3_client.generate_presigned_url('get_object', Params=params, ExpiresIn=600)
+        return jsonify({'url': url})
+    except (NoCredentialsError, PartialCredentialsError) as e:
+        print(e)
+        return jsonify({'error': 'Credentials error'}), 500
+    except Exception as e:
+        print("*"*100)
+        print(e)
+        return jsonify({'error': 'Error generating download URL'}), 500
+
 
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -37,7 +80,7 @@ def upload():
 
     # Get the file from S3
     try:
-        s3_response = s3.get_object(Bucket=S3_BUCKET_NAME, Key=file_key)
+        s3_response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=file_key)
         file_content = s3_response['Body'].read().decode('utf-8')  # Assuming it's a text-based CSV
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -61,4 +104,4 @@ def upload():
     return jsonify(llm_output), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
