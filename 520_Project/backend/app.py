@@ -14,6 +14,9 @@ s3_client = boto3.client('s3')
 
 # Set your DynamoDB table name and S3 bucket name
 DYNAMODB_TABLE_NAME = 'YourDynamoDBTableName'
+USER_FILES_TABLE = "llm-user-files"
+LLM_FILE_TABLE = "llm-file-table"
+LLM_USER_TABLE = "llm-user-table"
 S3_BUCKET_NAME = 'llm-query-generator'
 LLM_API_URL = 'https://api.your-llm.com/generate'  # Change this to your LLM API endpoint
 

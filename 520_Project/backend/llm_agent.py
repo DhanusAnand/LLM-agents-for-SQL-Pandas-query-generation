@@ -3,8 +3,10 @@ import os
 from langchain.agents.agent_types import AgentType
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
+# loading variables from .env file
+load_dotenv()
 
-print(os.environ["OPENAI_API_KEY"])
 
 import pandas as pd
 from langchain_openai import OpenAI
