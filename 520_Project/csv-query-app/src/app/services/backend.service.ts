@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-const Base_URL = "http://localhost:5000";
+const Base_URL = "http://localhost:8000";
 
 @Injectable({
   providedIn: 'root'
@@ -27,4 +27,15 @@ export class BackendService {
     const headers = { 'Content-Type': 'text/csv' };
     return this.http.put(presignedUrl, file, { headers });
   }
+
+    // Method to ask query to the pandas llm
+    getPandasQueryOutput(filekey: string, query: string, userid:string="default") {
+      console.log("calling llm agent...");
+      const data = {
+        "file_key": filekey,
+        "query": query
+      };
+      return this.http.post(Base_URL+`/get-pandas-query`,data);
+    }
+
 }
