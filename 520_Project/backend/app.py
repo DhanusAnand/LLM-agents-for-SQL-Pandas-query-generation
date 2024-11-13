@@ -4,9 +4,13 @@ import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import requests
 import json
+import pandas as pd
+from llm_agent import process_pandas_result_to_json, query_pandas_agent
+
+allowed_hosts=["http://localhost:4200/*","http://localhost:4200"]
 
 app = Flask(__name__)
-CORS(app)
+CORS(app,origins=allowed_hosts)
 
 # Initialize AWS clients
 dynamodb = boto3.resource('dynamodb')
@@ -18,7 +22,6 @@ USER_FILES_TABLE = "llm-user-files"
 LLM_FILE_TABLE = "llm-file-table"
 LLM_USER_TABLE = "llm-user-table"
 S3_BUCKET_NAME = 'llm-query-generator'
-LLM_API_URL = 'https://api.your-llm.com/generate'  # Change this to your LLM API endpoint
 
 
 
@@ -62,8 +65,8 @@ def generate_view_url():
         return jsonify({'error': 'Error generating download URL'}), 500
 
 
-@app.route('/upload', methods=['POST'])
-def upload():
+@app.route('/get-pandas-query', methods=['POST'])
+def get_pandas_query():
     # Get CSV file key and user query from the request
     data = request.json
     file_key = data.get('file_key')
@@ -72,39 +75,20 @@ def upload():
     if not file_key or not user_query:
         return jsonify({'error': 'file_key and query are required'}), 400
 
-    # Get file metadata from DynamoDB
-    table = dynamodb.Table(DYNAMODB_TABLE_NAME)
-    metadata_response = table.get_item(Key={'file_key': file_key})
-    
-    if 'Item' not in metadata_response:
-        return jsonify({'error': 'File not found'}), 404
-    
-    file_metadata = metadata_response['Item']
 
     # Get the file from S3
-    try:
-        s3_response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=file_key)
-        file_content = s3_response['Body'].read().decode('utf-8')  # Assuming it's a text-based CSV
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-    # Prepare the prompt for the LLM
-    llm_input = {
-        'metadata': file_metadata,
-        'query': user_query,
-        'file_content': file_content
-    }
-
-    # Call the LLM API
-    llm_response = requests.post(LLM_API_URL, json=llm_input)
-
-    if llm_response.status_code != 200:
-        return jsonify({'error': 'LLM request failed', 'details': llm_response.text}), 500
-
-    llm_output = llm_response.json()
+    params = {
+            'Bucket': S3_BUCKET_NAME,
+            'Key': file_key
+        }
+    url = s3_client.generate_presigned_url('get_object', Params=params, ExpiresIn=600)
+    print(f'url: {url}')
+    df = pd.read_csv(url)
+    res = query_pandas_agent(df,user_query)
+    llm_output = process_pandas_result_to_json(res)
 
     # Return the response back to the frontend
     return jsonify(llm_output), 200
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=8000, host="0.0.0.0")
