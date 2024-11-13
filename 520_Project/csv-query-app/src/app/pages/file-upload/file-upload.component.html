@@ -1,46 +1,3 @@
-<!-- <div class="upload-container">
-    <h2>Upload CSV</h2>
-    <input type="file" (change)="onFileChange($event)" />
-    <button (click)="onSubmit()" [disabled]="!fileData">Upload File</button>
-  
-    <div class="query-section">
-      <h3>Enter Query</h3>
-      <input [(ngModel)]="query" placeholder="Type your query here" />
-      <button (click)="onSubmit()">Run Query</button>
-    </div>
-  
-    <div class="result-section">
-      <h3>Query Results</h3>
-      <div *ngIf="queryResult">{{ queryResult }}</div>
-    </div>
-  </div>
-   -->
-   <!-- <div class="container">
-    <div class="upload-section">
-      <h2>Upload CSV</h2>
-      <input type="file" (change)="onFileChange($event)" />
-      <button (click)="onSubmit()" [disabled]="!fileData">Upload File</button>
-      <div *ngIf="fileData" class="selected-file">
-        <p>Selected File: {{ fileData.name }}</p>
-      </div>
-    </div>
-  
-    <div class="query-section">
-      <div class="chatbot-section">
-        <h3>Chatbot</h3>
-        <input [(ngModel)]="query" placeholder="Type your query here" />
-        <button (click)="onChatSubmit()">Send</button>
-        <div *ngIf="chatbotResponse" class="chatbot-response">{{ chatbotResponse }}</div>
-      </div>
-      
-      <div class="result-section">
-        <h3>Query Results</h3>
-        <div *ngIf="queryResult">{{ queryResult }}</div>
-      </div>
-    </div>
-  </div>
-   -->
-
    <div class="container">
     <div class="left-section">
       <h2>Upload CSV</h2>
@@ -69,6 +26,21 @@
       <div class="result-section">
         <h3>Query Results</h3>
         <div *ngIf="queryResult">{{ queryResult }}</div>
+        <div *ngIf="isResultTable">
+          <table *ngIf="data.length" border="1">
+            <thead>
+              <tr>
+                <th *ngFor="let header of headers">{{ header }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of data">
+                <td *ngFor="let header of headers">{{ row[header] }}</td>
+              </tr>
+            </tbody>
+          </table>
+          
+        </div>
       </div>
     </div>
   </div>

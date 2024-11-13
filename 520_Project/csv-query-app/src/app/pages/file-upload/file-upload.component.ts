@@ -29,15 +29,20 @@ chatMessages: ChatMessage[] = [
   { text: 'I have a question about the sales data analysis function you provided.', isUser: true },
 ];
 
-onChatSubmit() {
-throw new Error('Method not implemented.');
+async onChatSubmit() {
+// throw new Error('Method not implemented.');
+this.query = this.chatQuery;
+  await this.onSubmitQuery();
 }
   file: File | undefined;
   fileForm: FormGroup;
   fileData: any = null;
   queryResult: any = null;
   query = '';
-chatbotResponse = '';
+  chatbotResponse = '';
+  isResultTable = false;
+  data: any[] = [];  // To hold parsed table data
+  headers: string[] = [];  // To hold table headers
 
   constructor(private fb: FormBuilder, public service: BackendService, private http: HttpClient) {
     this.fileForm = this.fb.group({
@@ -49,6 +54,7 @@ chatbotResponse = '';
     this.file = event.target.files[0];
     if (this.file) {
       console.log("file added");
+      console.log(this.file);
       // this.fileForm.patchValue({ this.file });
       // this.fileData = this.file;
     }
@@ -72,11 +78,85 @@ chatbotResponse = '';
     }
   }
 
-  onSubmitQuery() {
+  // async onSubmitQuery() {
+  //   if (this.query) {
+  //     // Here, you would send the query to the backend.
+  //     console.log('Query submitted:', this.query);
+  //     try {
+  //       if (this.file){
+  //     //     console.log("file name",this.file.name);
+  //     //     const response = await this.service.getPandasQueryOutput(this.file.name,this.query,'default').toPromise();
+  //     //     console.log(response);
+  //     //     // this.queryResult = response.data?.result;
+  //     //     // this.isResultTable = response.data?.is_table;
+  //           const response = await this.service.getPandasQueryOutput(this.file.name, this.query, 'default').toPromise();
+  //           const result = JSON.parse(response.result);
+
+  //           // Get headers from object keys
+  //           this.headers = Object.keys(result);
+
+  //           // Convert object of arrays into array of rows
+  //           const rows = Object.keys(result[this.headers[0]]);
+  //           this.data = rows.map((rowId) => {
+  //             let row = {};
+  //             this.headers.forEach((header) => {
+  //               row[header] = result[header][rowId];
+  //             });
+  //             return row;
+  //           });
+  //       }
+  //       else{
+  //         console.log("No file found!!");
+  //       }
+        
+  //     } catch (error) {
+  //       console.error('Error sending the query');
+  //       console.log(error);
+  //     }
+      
+  
+  //     this.queryResult = `Results for query: ${this.query}`;
+  //   }
+  // }
+
+  async onSubmitQuery() {
     if (this.query) {
-      // Here, you would send the query to the backend.
       console.log('Query submitted:', this.query);
+      try {
+        if (this.file) {
+          // Call the service and handle the response using subscribe
+          this.service.getPandasQueryOutput(this.file.name, this.query, 'default').subscribe({
+            next: (response: any) => {
+              const result = JSON.parse(response['result']);
+  
+              // Get headers from object keys
+              this.headers = Object.keys(result);
+              this.isResultTable = response['is_table'];
+  
+              // Convert object of arrays into array of rows
+              const rows = Object.keys(result[this.headers[0]]);
+              this.data = rows.map((rowId) => {
+                let row:any = {};
+                this.headers.forEach((header) => {
+                  row[header] = result[header][rowId];
+                });
+                return row;
+              });
+            },
+            error: (error) => {
+              console.error('Error sending the query', error);
+            }
+          });
+        } else {
+          console.log("No file found!!");
+        }
+      } catch (error) {
+        console.error('Unexpected error in query submission', error);
+      }
+  
       this.queryResult = `Results for query: ${this.query}`;
     }
   }
+  
 }
+
