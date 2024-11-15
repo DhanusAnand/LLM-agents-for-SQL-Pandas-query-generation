@@ -1,0 +1,75 @@
+<div class="container">
+    <!-- Left Section: File Upload and CSV Preview (unchanged) -->
+    <div class="left-section">
+      <h2>Upload CSV or Excel File</h2>
+      <input type="file" (change)="handleFileInput($event)" />
+  
+      <h3>CSV Preview</h3>
+      <div class="table-container" *ngIf="csvData.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th *ngFor="let col of cols">{{ col }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of csvData">
+              <td *ngFor="let col of cols">{{ row[col] }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p *ngIf="csvData.length === 0">No data to display. Upload a file to preview.</p>
+    </div>
+  
+    <!-- Right Section: Query Options and Results -->
+    <div class="right-section">
+      <h3>Query Options</h3>
+  
+      <!-- Radio Buttons for SQL and Pandas -->
+      <div class="query-type">
+        <label>
+          <input type="radio" name="queryType" value="sql" [(ngModel)]="queryType" /> SQL
+        </label>
+        <label>
+          <input type="radio" name="queryType" value="pandas" [(ngModel)]="queryType" /> Pandas
+        </label>
+      </div>
+  
+      <!-- Text Area for Query Input -->
+      <div class="query-input">
+        <label for="textToSend">Text to send</label>
+        <textarea id="textToSend" [(ngModel)]="textToSend" placeholder="Enter your query"></textarea>
+      </div>
+  
+      <!-- Submit Button -->
+      <button class="submit-button" (click)="submitQuery()">Submit</button>
+  
+      <!-- Query Result Display -->
+      <div class="query-result">
+        <label>Query returned:</label>
+        <p>{{ queryResult }}</p>
+      </div>
+  
+      <!-- Processed Data Display -->
+      <div class="processed-data">
+        <label>Processed data (Tabular format)</label>
+        <div class="table-container">
+          <table *ngIf="processedData.length > 0">
+            <thead>
+              <tr>
+                <th *ngFor="let col of processedCols">{{ col }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of processedData">
+                <td *ngFor="let col of processedCols">{{ row[col] }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p *ngIf="processedData.length === 0">No processed data to display</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
