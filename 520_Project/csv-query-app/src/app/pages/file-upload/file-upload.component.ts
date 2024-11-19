@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -19,10 +19,27 @@ interface ChatMessage {
   providers:[BackendService],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule]
 })
-export class FileUploadComponent {
+export class FileUploadComponent implements OnInit{
 chatQuery='';
-
-
+user_id="";
+is_logged_in=false;
+constructor(private fb: FormBuilder, public service: BackendService, private http: HttpClient) {
+  this.fileForm = this.fb.group({
+    file: [null]
+  });
+}
+ngOnInit(): void {
+  this.service.isLoggedIn().subscribe(
+    (response:any) => {
+      this.user_id = response.user_id;
+      this.is_logged_in = true;
+      console.log(this.user_id, this.is_logged_in);
+    },
+    (error) => {
+      console.error('Access denied', error, this.is_logged_in);
+    }
+  );
+}
 
 chatMessages: ChatMessage[] = [
   { text: 'Hello, how can I help you today?', isUser: false },
@@ -44,11 +61,7 @@ this.query = this.chatQuery;
   data: any[] = [];  // To hold parsed table data
   headers: string[] = [];  // To hold table headers
 
-  constructor(private fb: FormBuilder, public service: BackendService, private http: HttpClient) {
-    this.fileForm = this.fb.group({
-      file: [null]
-    });
-  }
+  
 
   onFileChange(event: any) {
     this.file = event.target.files[0];
