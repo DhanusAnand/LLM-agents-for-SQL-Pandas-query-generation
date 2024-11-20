@@ -14,8 +14,8 @@ from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe
 from dotenv import load_dotenv
 load_dotenv()
 
-PANDAS_AGENT_PROMPT = "give me the pandas code to get answer to the query: {query}"
-SQL_AGENT_PROMPT = "give me the SQL code to get answer to the query: {query}"
+PANDAS_AGENT_PROMPT = "Give me the pandas code to get answer to the query: {query}"
+SQL_AGENT_PROMPT = "Give me the SQL code to get answer to the following query. If I do not specify the number of rows, then assume that I want all such rows: {query}"
 
 def query_pandas_agent(df, query):
     agent = create_pandas_dataframe_agent(OpenAI(temperature=0), df, verbose=False,  allow_dangerous_code= True,
@@ -47,12 +47,13 @@ def csv_to_sqlite(df, db_file, table_name):
 def query_sql_agent(df, query):
     db_file = "table_name.db"
     table_name = "table_name"
-    csv_to_sqlite(df, db_file, table_name)
+    # dummy dataframe for input to llm
+    csv_to_sqlite(df[:5], db_file, table_name)      # create dummy dataframe with minimal rows for lesser context length
     engine = create_engine(f"sqlite:///{db_file}")
     db = SQLDatabase(engine)
 
     agent_executor = create_sql_agent(ChatOpenAI(model="gpt-3.5-turbo", temperature=0), db=db, agent_type="openai-tools", 
-                                      verbose=False, agent_executor_kwargs = {"return_intermediate_steps": True})
+                                      verbose=True, agent_executor_kwargs = {"return_intermediate_steps": True})
     prompt = SQL_AGENT_PROMPT.format(query=query)
     print(prompt)
     res = agent_executor.invoke(prompt)
@@ -61,15 +62,24 @@ def query_sql_agent(df, query):
     for (log, output) in res["intermediate_steps"]:
         if log.tool == 'sql_db_query':
             sql_queries.append(log.tool_input)
-    
+
+    # this time, create use dataframe for final output
+    csv_to_sqlite(df, db_file, table_name) 
+    engine = create_engine(f"sqlite:///{db_file}")
+    db = SQLDatabase(engine)
     os.remove(db_file)
-    return res, sql_queries
+
+    if len(sql_queries) > 0:
+        output = db.run(sql_queries[0]['query'])
+        return output, sql_queries[0]['query']
+    else:
+        assert False, "No SQL query generated"
 
 def process_sql_result_to_json(res, query):
     data = {
+        "result": res,
         "query": query,
     }
-    data['result'] = res['intermediate_steps'][-1][-1]
     return data
 
 
