@@ -88,46 +88,67 @@ class AuthResource(FlaskView):
     def health_check(self):
         return jsonify({'hello': "hello"})
     
-    # @route('register', methods=['POST'])
-    # def register(self):
-    #     '''
-    #     Register a new user
-    #     '''
-    #     try:
-    #         data = request.json # data.keys = ('username', 'name', 'email')
-    #         # check if the user already exists
-    #         user = User.get(data['username'])
-    #         if user is not None:
-    #             raise UserAlreadyExistsException(user.username)
+    @route('new-user', methods=['POST'])
+    def add_new_user(self):
+        '''
+        Register a new user
+        '''
+        username = request.json.get('username')
+        name = request.json.get('name')
+        email = request.json.get('email')
+        data = {
+            "username": username,
+            "name": name,
+            "email": email
+        }
+        try:
+            # data = request.json # data.keys = ('username', 'name', 'email')
+            # check if the user already exists
+            print(f"{data['username']}")
+            user = User.get(data['username'])
+            print(user)
+            if user is not None:
+                user = User.from_dict(user)
+                raise UserAlreadyExistsException(user.username)
             
-    #         user, status = User.validate_nd_make_user(data)
-    #         if status==Status.VALID:
-    #             user.put()
-    #     except InvalidInputException as e:
-    #         print(f"error: {e}")
-    #         return jsonify({
-    #             "msg": e.message
-    #         }),200
-    #     except UserAlreadyExistsException as e:
-    #         print(f"error: {e}")
-    #         return jsonify({
-    #             "msg": e.message
-    #         })
-    #     except Exception as e:
-    #         print(f"error: {e}")
-    #         return jsonify({
-    #             "msg": f"{e}"
-    #         })
+            user, status = User.validate_nd_make_user(data)
+            if status==Status.VALID:
+                # 1. Add the user in user table
+                user.put()
+                print("put the user!!")
+                # 2. Add in user files table
+                usr_files = UserFiles(user.user_id, file_ids=[])
+                usr_files.put()
+
+            return jsonify({
+                "msg": "New user added successfully!!"
+            })
+        except InvalidInputException as e:
+            print(f"error-1 : {e}")
+            return jsonify({
+                "msg": str(e)
+            }),200
+        except UserAlreadyExistsException as e:
+            print(f"error-2: {e}")
+            return jsonify({
+                "msg": str(e)
+            }),404
+        except Exception as e:
+            print(f"error-3: {e.with_traceback()}")
+            return jsonify({
+                "msg": f"{e}"
+            }),404
         
     
     @route('login', methods=['POST'])
     def login(self):
         user_id = request.json.get('user_id')
-        password = request.json.get('password')
+        # password = request.json.get('password')
         try: 
             resp = User.get(user_id)
-            print(resp)
-            if resp['password']==password:
+            # print(resp)
+            # if resp['password']==password:
+            if resp is not None:
                 access_token = create_access_token(identity=user_id)
                 print(access_token)
                 response = jsonify({"msg": "Login successful"})
