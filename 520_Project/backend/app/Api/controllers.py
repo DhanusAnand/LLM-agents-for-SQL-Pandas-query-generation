@@ -28,13 +28,31 @@ class UserResource(FlaskView):
 
     @route('all/files', methods=['GET','POST'])
     def get_user_files(self):
-        user = User.get(request.args.get('user_id'))
+        user = User.get(request.args.get('user_id')) # TODO: need to get from jwt_identity
         return jsonify(UserFiles.get(user.user_id))
     
     @route('upload/file', methods=['POST'])
     def upload_file(self):
+        '''
+        ## This function should be called after generate-upload-url from frontend
+        request body:
+        {
+            'user_id': <user_id>,
+            'file': {
+                'filename': <filename>,
+                'file_id': <file_id>,
+                'size': <file-size-kb>
+            }
+        }
+        '''
+        user_id = request.json.get('user_id') # TODO: need to get from jwt_identity
+        userFiles = UserFiles.get(user_id)
+        userFiles['files'].append(request.json.get('file'))
+        userFiles = UserFiles.from_dict(userFiles)
+        print(userFiles)
+        userFiles.put() # put in user-files
         return jsonify({
-
+            "msg": "Successfully uploaded file!!"
         })
     
     @route('generate-upload-url', methods=['GET'])
@@ -117,7 +135,7 @@ class AuthResource(FlaskView):
                 user.put()
                 print("put the user!!")
                 # 2. Add in user files table
-                usr_files = UserFiles(user.user_id, file_ids=[])
+                usr_files = UserFiles(user.user_id, files=[])
                 usr_files.put()
 
             return jsonify({
