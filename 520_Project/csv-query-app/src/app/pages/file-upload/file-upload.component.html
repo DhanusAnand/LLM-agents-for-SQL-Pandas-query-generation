@@ -61,8 +61,8 @@
     <div class="chat-section">
       <div class="chat-input">
         <label for="textToSend">Text to send</label>
-        <textarea id="textToSend" input [(ngModel)]="chatQuery" placeholder="Type your query here"></textarea>
-        <button class="submit-button" (click)="onChatSubmit()">Submit</button>
+        <textarea id="textToSend" input [(ngModel)]="query" placeholder="Type your query here"></textarea>
+        <button class="submit-button" (click)="onSubmitQuery()">Submit</button>
       </div>
     </div>
     <div class="result-section">

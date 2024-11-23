@@ -141,6 +141,7 @@ export class FileUploadComponent implements OnInit {
   }
 
   async onSubmitQuery() {
+    console.log("called onSubmitQuery");
     if (this.query) {
       console.log('Query submitted:', this.query);
       try {
