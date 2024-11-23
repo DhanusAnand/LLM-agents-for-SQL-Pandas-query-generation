@@ -8,7 +8,7 @@ from flask_jwt_extended import (
     set_access_cookies,
     unset_jwt_cookies,
 )
-from app.Api.controllers import ApiResource ,UserResource
+from app.Api.controllers import ApiResource ,UserResource, AuthResource
 from dotenv import load_dotenv
 # loading all environment variables
 load_dotenv()
@@ -17,6 +17,7 @@ jwt = JWTManager()
 
 allowed_hosts=["http://localhost:4200/*","http://localhost:4200"]
 origin = "http://localhost:4200/*"
+ALLOWED_ORIGINS = ["http://localhost:4200"]
 
 def create_app():
     app = Flask(__name__)
@@ -28,6 +29,7 @@ def create_app():
 
         CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
         ApiResource.register(app)
+        AuthResource.register(app)
         UserResource.register(app)
 
     return app

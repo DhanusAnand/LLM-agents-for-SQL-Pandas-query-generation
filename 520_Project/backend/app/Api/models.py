@@ -5,11 +5,16 @@ from typing import Type, TypeVar
 
 # Initialize DynamoDB resource
 dynamodb = boto3.resource('dynamodb')
+# Initialize s3 client
+s3_client = boto3.client('s3')
+
 
 # Table names
 USER_FILES_TABLE = "llm-user-files"
 LLM_FILE_TABLE = "llm-file-table"
 USER_TABLE = "llm-user-table"
+# S3 bucket
+S3_BUCKET_NAME = 'llm-query-generator'
 
 # Type variable for generic return type in base class methods
 T = TypeVar('T', bound='BaseModel')
@@ -79,7 +84,7 @@ class User(BaseModel):
     user_id: str
     name: str
     username: str
-    email: str
+    email: str = ""
 
     @staticmethod
     def get(user_id: str):
@@ -102,6 +107,18 @@ class User(BaseModel):
         """
         table = dynamodb.Table(USER_TABLE)
         table.put_item(Item=self.to_dict())
+    
+    @classmethod
+    def _required_keys(cls):
+        return ["username", "name", "email"]
+
+    @staticmethod
+    def validate_nd_make_user(data):
+        if any([key not in data for key in User._required_keys()]):
+            raise Inval
+        return User(user_id=data['username'],name=data['name'], username=data['username'], email=data['email']), Status.VALID
+
+
 
 
 @dataclass
