@@ -2,6 +2,8 @@ from dataclasses import dataclass, asdict
 import boto3
 import json
 from typing import Type, TypeVar
+from app.Api.enums import *
+from app.Api.exceptions import *
 
 # Initialize DynamoDB resource
 dynamodb = boto3.resource('dynamodb')
@@ -114,8 +116,8 @@ class User(BaseModel):
 
     @staticmethod
     def validate_nd_make_user(data):
-        if any([key not in data for key in User._required_keys()]):
-            raise Inval
+        if any([(key not in data) or (key is None) for key in User._required_keys()]):
+            raise InvalidInputException("username, name and email should not be null or empty")
         return User(user_id=data['username'],name=data['name'], username=data['username'], email=data['email']), Status.VALID
 
 
@@ -128,10 +130,15 @@ class UserFiles(BaseModel):
 
     Attributes:
         user_id (str): Unique identifier for the user.
-        file_ids (list): List of file IDs owned by the user.
+        files (list): List of files owned by the user.
+        file structure: {
+            'file_id': <file_id>,
+            'filename': <filename>,
+            'size': <file-size-kb>
+        }
     """
     user_id: str
-    file_ids: list
+    files: list
 
     @staticmethod
     def get(user_id: str):
@@ -155,7 +162,7 @@ class UserFiles(BaseModel):
         table = dynamodb.Table(USER_FILES_TABLE)
         table.put_item(Item=self.to_dict())
 
-
+#  can remove this
 @dataclass
 class LLMFile(BaseModel):
     """
@@ -170,27 +177,27 @@ class LLMFile(BaseModel):
     file_name: str
     metadata: dict
 
-    @staticmethod
-    def get(file_id: str):
-        """
-        Retrieve a file from the LLM_FILE_TABLE by file_id.
+    # @staticmethod
+    # def get(file_id: str):
+    #     """
+    #     Retrieve a file from the LLM_FILE_TABLE by file_id.
 
-        Args:
-            file_id (str): The unique identifier of the file.
+    #     Args:
+    #         file_id (str): The unique identifier of the file.
 
-        Returns:
-            dict: The file item from the table, or None if not found.
-        """
-        table = dynamodb.Table(LLM_FILE_TABLE)
-        response = table.get_item(Key={'file_id': file_id})
-        return response.get('Item')
+    #     Returns:
+    #         dict: The file item from the table, or None if not found.
+    #     """
+    #     table = dynamodb.Table(LLM_FILE_TABLE)
+    #     response = table.get_item(Key={'file_id': file_id})
+    #     return response.get('Item')
 
-    def put(self):
-        """
-        Insert or update the file in the LLM_FILE_TABLE.
-        """
-        table = dynamodb.Table(LLM_FILE_TABLE)
-        table.put_item(Item=self.to_dict())
+    # def put(self):
+    #     """
+    #     Insert or update the file in the LLM_FILE_TABLE.
+    #     """
+    #     table = dynamodb.Table(LLM_FILE_TABLE)
+    #     table.put_item(Item=self.to_dict())
 
 
 # Example usage
