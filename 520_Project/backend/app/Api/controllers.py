@@ -15,7 +15,7 @@ from flask_jwt_extended import (
     unset_jwt_cookies,
 )
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
-from llm_agent import process_pandas_result_to_json, query_pandas_agent
+from llm_agent import process_pandas_result_to_json, query_pandas_agent, query_sql_agent
 from app.Api.models import *
 from app.Api.exceptions import *
 from app.Api.enums import *
@@ -208,7 +208,6 @@ class ApiResource(FlaskView):
         if not file_key or not user_query:
             return jsonify({'error': 'file_key and query are required'}), 400
 
-
         # Get the file from S3
         params = {
                 'Bucket': S3_BUCKET_NAME,
@@ -219,6 +218,32 @@ class ApiResource(FlaskView):
         df = pd.read_csv(url)
         res = query_pandas_agent(df,user_query)
         llm_output = process_pandas_result_to_json(res)
+
+        # Return the response back to the frontend
+        return jsonify(llm_output), 200
+    
+    @route('get-sql-query', methods=['POST'])
+    @jwt_required()
+    def get_sql_query(self):
+        user_id=get_jwt_identity()
+        print(user_id)
+        # Get CSV file key and user query from the request
+        data = request.json
+        file_key = data.get('file_key')
+        user_query = data.get('query')
+
+        if not file_key or not user_query:
+            return jsonify({'error': 'file_key and query are required'}), 400
+
+        # Get the file from S3
+        params = {
+                'Bucket': S3_BUCKET_NAME,
+                'Key': file_key
+            }
+        url = s3_client.generate_presigned_url('get_object', Params=params, ExpiresIn=600)
+        print(f'url: {url}')
+        df = pd.read_csv(url)
+        llm_output = query_sql_agent(df,user_query)
 
         # Return the response back to the frontend
         return jsonify(llm_output), 200
