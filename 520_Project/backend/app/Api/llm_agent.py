@@ -9,6 +9,7 @@ from langchain_openai import ChatOpenAI
 from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 from langchain.chains import create_sql_query_chain
+from sqlalchemy.sql import text
 
 # Loading variables from .env file
 from dotenv import load_dotenv
@@ -45,18 +46,39 @@ def csv_to_sqlite(df, db_file, table_name):
     conn.close()
 
 def query_sql_agent(df, query):
+    # convert to sqlite
     db_file = "temp_table.db"
     table_name = "temp_table"
-    csv_to_sqlite(df, db_file, table_name)
+    csv_to_sqlite(df[:5], db_file, table_name)
     engine = create_engine(f"sqlite:///{db_file}")
     temp_db = SQLDatabase(engine)
 
+    # run the query via langchain
     chain = create_sql_query_chain(ChatOpenAI(model="gpt-4o-mini"), temp_db)
     prompt = SQL_AGENT_PROMPT.format(query=query)
     print(prompt)
-    res = chain.invoke({"question": prompt}).split('SQLQuery: ')[1]
-    output = temp_db.run(res)
-    return output, res
+    sql_res = chain.invoke({"question": prompt}).split('SQLQuery: ')[1]
+    # output_str = temp_db.run(sql_res)
+
+    # for converting database result in string format to json format
+    sql_query = text(sql_res)
+    with engine.connect() as connection:
+        result = connection.execute(sql_query) 
+        rows = result.fetchall()               # Fetch all rows
+        columns = result.keys()                # Get the column names
+
+    json_output = {}    
+    if len(rows) == 1 and len(columns) == 1:
+        json_output['is_table'] = False
+        table_json = rows[0][0]
+    else:
+        json_output['is_table'] = True
+        table_json = [dict(zip(columns, row)) for row in rows]
+
+    json_output['query'] = sql_res
+    json_output['result'] = table_json
+    
+    return json_output
     
 def process_sql_result_to_json(res, query):
     data = {
@@ -69,12 +91,11 @@ def process_sql_result_to_json(res, query):
 # Example Usage
 
 df = pd.read_csv("https://raw.githubusercontent.com/pandas-dev/pandas/main/doc/data/titanic.csv")
-query = "filter rows where age > 21"
-# query = "how many people with age > 21?"
-# pandas_res = query_pandas_agent(df, query)
-# print(pandas_res['output'])
-# pandas_data = process_pandas_result_to_json(pandas_res)
+# query = "filter rows where age > 21"
+query = "how many people with age > 21?"
+pandas_res = query_pandas_agent(df, query)
+print(pandas_res['output'])
+pandas_data = process_pandas_result_to_json(pandas_res)
 
-sql_res, sql_query = query_sql_agent(df, query)
-sql_data = process_sql_result_to_json(sql_res, sql_query)
-print(sql_query)
+sql_data = query_sql_agent(df, query)
+print(sql_data['query'])
