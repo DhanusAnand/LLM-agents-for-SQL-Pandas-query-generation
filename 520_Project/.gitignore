@@ -2,3 +2,4 @@
 backend/.env
 backend/app/.env
 *__pycache__*
+.pytest_cache/

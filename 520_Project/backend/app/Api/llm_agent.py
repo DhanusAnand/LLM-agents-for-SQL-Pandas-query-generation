@@ -19,6 +19,11 @@ PANDAS_AGENT_PROMPT = "Give me the pandas code to get answer to the query: {quer
 SQL_AGENT_PROMPT = "Give me the SQL code to get answer to the following query. Do not select specific columns unless I ask you to do so. If I do not specify the number of rows, then assume that I want all such rows i.e. DO NOT USE LIMIT UNLESS I SPECIFY A NUMBER: {query}"
 
 def query_pandas_agent(df, query):
+    if not isinstance(df, pd.core.frame.DataFrame):
+        raise Exception("Invalid input. Please provide a pandas DataFrame")
+    if not isinstance(query, str):
+        raise Exception("Invalid input. Please provide a string query")
+    
     agent = create_pandas_dataframe_agent(OpenAI(temperature=0), df, verbose=False,  allow_dangerous_code= True,
                                      return_intermediate_steps=True)
     prompt = PANDAS_AGENT_PROMPT.format(query=query)
@@ -46,10 +51,15 @@ def csv_to_sqlite(df, db_file, table_name):
     conn.close()
 
 def query_sql_agent(df, query):
+    if not isinstance(df, pd.core.frame.DataFrame):
+        raise Exception("Invalid input. Please provide a pandas DataFrame")
+    if not isinstance(query, str):
+        raise Exception("Invalid input. Please provide a string query")
+
     # convert to sqlite
     db_file = "temp_table.db"
     table_name = "temp_table"
-    csv_to_sqlite(df[:5], db_file, table_name)
+    csv_to_sqlite(df, db_file, table_name)
     engine = create_engine(f"sqlite:///{db_file}")
     temp_db = SQLDatabase(engine)
 
@@ -77,16 +87,10 @@ def query_sql_agent(df, query):
 
     json_output['query'] = sql_res
     json_output['result'] = table_json
-    
+    os.remove(db_file)    
+
     return json_output
     
-def process_sql_result_to_json(res, query):
-    data = {
-        "result": res,
-        "query": query,
-    }
-    return data
-
 
 # Example Usage
 
