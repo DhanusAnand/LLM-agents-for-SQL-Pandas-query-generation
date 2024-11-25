@@ -71,6 +71,8 @@
   flex: 1; /* Left section takes more space */
   padding: 20px;
   overflow-y: auto;
+  max-width: 50%;
+  width: 50%;
   border-right: 1px solid #ccc;
   background-color: #f9f9f9;
   display: flex;
@@ -80,10 +82,20 @@
 .right-section {
   flex: 1; /* Right section takes less space */
   padding: 20px;
+  max-width: 50%;
+  width: 50%;
   display: flex;
   flex-direction: column;
   gap: 15px;
   background-color: #fff;
+}
+
+.right-section .table-container {
+  flex: 1; /* Allow table container to expand fully in the left section */
+  overflow: auto; /* Enable both vertical and horizontal scrolling */
+  border: 1px solid #ccc;
+  margin-top: 15px;
+  max-height: none; /* Remove height restriction */
 }
 
 /* Table container for CSV preview */

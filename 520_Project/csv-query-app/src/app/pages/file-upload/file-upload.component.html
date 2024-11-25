@@ -73,7 +73,7 @@
     </div>
       <h4>Query Results</h4>
       <div *ngIf="queryResult">{{ queryResult }}</div>
-      <div *ngIf="isResultTable">
+      <div class="table-container" *ngIf="isResultTable">
         <table *ngIf="data.length" border="1">
           <thead>
             <tr>
