@@ -1,0 +1,45 @@
+<div class="auth-container">
+  <div class="form-wrapper">
+    <div *ngIf="!isSignup" class="form-container">
+      <h2>Login</h2>
+      <form [formGroup]="authForm" (ngSubmit)="onLogin()">
+        <input type="email" placeholder="Email" formControlName="email" required />
+        <input type="password" placeholder="Password" formControlName="password" required />
+        <button type="submit" [disabled]="authForm.invalid">Login</button>
+      </form>
+      <p>Don't have an account? <span (click)="toggleSignup()">Sign Up</span></p>
+    </div>
+
+    <div *ngIf="isSignup" class="form-container">
+      <h2>Sign Up</h2>
+      <form [formGroup]="signupForm" (ngSubmit)="onSignup()">
+        <input type="text" placeholder="First Name" formControlName="firstName" required />
+        <input type="text" placeholder="Last Name" formControlName="lastName" required />
+        <input type="email" placeholder="Email" formControlName="email" required />
+        <input type="password" placeholder="Password" formControlName="password" required />
+        <button type="submit" [disabled]="signupForm.invalid">Sign Up</button>
+      </form>
+      <p>Already have an account? <span (click)="toggleSignup()">Login</span></p>
+    </div>
+  </div>
+
+  <br>
+
+  <div id="google-signin">
+    <div id="g_id_onload"
+         data-client_id="505209386160-4ieji40drcbsgerimaeekfd322ncu2r4.apps.googleusercontent.com"
+         data-context="signup"
+         data-ux_mode="popup"
+         data-itp_support="true"
+         data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-shape="rectangular"
+         data-theme="outline"
+         data-text="continue_with"
+         data-size="large"
+         data-logo_alignment="left">
+    </div>
+  </div>
+</div>

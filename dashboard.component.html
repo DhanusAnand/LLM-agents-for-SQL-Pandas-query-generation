@@ -1,0 +1,32 @@
+
+
+   <div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <!-- <h2>Welcome,
+        <ng-container *ngIf="userProfile">
+            <div>{{ userName }}</div>
+          </ng-container> -->
+      <h2>Welcome, {{ userName }}</h2>
+        <!-- </h2> -->
+      <button class="logout-btn" (click)="logout()">Logout</button>
+    </div>
+  
+
+    <div class="file-tiles">
+      <div class="tile upload-tile" (click)="goToUploadPage()">
+        <div class="upload-icon">+</div>
+        <p>Upload New File</p>
+      </div>
+  
+      <div
+        class="tile file-tile"
+        *ngFor="let file of userFiles"
+        (click)="openFile(file)"
+      >
+        <div class="file-icon">📄</div>
+        <p class="file-name">{{ file.name }}</p>
+      </div>
+    </div>
+  </div>
+  
