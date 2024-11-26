@@ -1,46 +1,92 @@
-   <div class="container">
-    <div class="left-section">
-      <h2>Upload CSV</h2>
-      <input type="file" (change)="onFileChange($event)" />
-      <button (click)="uploadFile()" [disabled]="!file">Upload File</button>
-      <div class="file-info" *ngIf="fileData">
-        <h3>Selected File</h3>
-        <p>{{ fileData.name }}</p>
+<!-- Navigation Bar -->
+<div class="navbar">
+  <div class="logo">
+    <img src="assets/logo.png" alt="Logo" />
+  </div>
+  <div class="profile">
+    <button class="profile-button" (click)="toggleDropdown()">
+      <img src="assets/images/profile-pic.webp" />
+    </button>
+    <div class="dropdown" *ngIf="dropdownOpen">
+      <ul>
+        <li><a href="/profile">Profile</a></li>
+        <li (click)="logout()">Sign Out</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+  <div class="left-section">
+    <h2>Upload CSV</h2>
+    <input type="file" (change)="onFileChange($event)" />
+    <div class="file-info" *ngIf="fileData">
+      <h3>Selected File</h3>
+      <p>{{ fileData.name }}</p>
+    </div>
+
+    <!-- Added CSV Preview -->
+    <h3>CSV Preview</h3>
+    <div class="table-container" *ngIf="csvData.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th *ngFor="let col of cols">{{ col }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of csvData">
+            <td *ngFor="let col of cols">{{ row[col] }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p *ngIf="csvData.length === 0">No data to display. Upload a file to preview.</p>
+  </div>
+
+  <div class="right-section">
+    <h3>Query Options</h3>
+    <div class="query-options">
+      <label>
+        <input type="radio" name="queryType" value="SQL" [(ngModel)]="queryType" />
+        SQL
+      </label>
+      <label>
+        <input type="radio" name="queryType" value="Pandas" [(ngModel)]="queryType" />
+        Pandas
+      </label>
+    </div>
+    
+    <div class="chat-section">
+      <div class="chat-input">
+        <label for="textToSend">Text to send</label>
+        <textarea id="textToSend" input [(ngModel)]="query" placeholder="Type your query here"></textarea>
+        <button class="submit-button" (click)="onSubmitQuery()">Submit</button>
       </div>
     </div>
-    <div class="right-section">
-        <div class="chat-section">
-            <h3>Chat with our AI</h3>
-            <div class="chat-container">
-              <div class="chat-message" *ngFor="let message of chatMessages">
-                <div class="message-content" [class.user-message]="message.isUser" [class.bot-message]="!message.isUser">
-                  {{ message.text }}
-                </div>
-              </div>
-            </div>
-            <div class="chat-input">
-              <input [(ngModel)]="chatQuery" placeholder="Type your query here" />
-              <button (click)="onChatSubmit()">Send</button>
-            </div>
-          </div>
-      <div class="result-section">
-        <h3>Query Results</h3>
-        <div *ngIf="queryResult">{{ queryResult }}</div>
-        <div *ngIf="isResultTable">
-          <table *ngIf="data.length" border="1">
-            <thead>
-              <tr>
-                <th *ngFor="let header of headers">{{ header }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of data">
-                <td *ngFor="let header of headers">{{ row[header] }}</td>
-              </tr>
-            </tbody>
-          </table>
-          
-        </div>
+    <div class="result-section">
+      <!-- Query Result Display -->
+    <div class="query-result">
+      <label>Query returned:</label>
+      <p>{{ queryResult }}</p>
+    </div>
+      <h4>Query Results</h4>
+      <div *ngIf="queryResult">{{ queryResult }}</div>
+      <div class="table-container" *ngIf="isResultTable">
+        <table *ngIf="data.length" border="1">
+          <thead>
+            <tr>
+              <th *ngFor="let header of headers">{{ header }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of data">
+              <td *ngFor="let header of headers">{{ row[header] }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
+</div>

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 const Base_URL = "http://localhost:8000";
 
@@ -10,7 +10,7 @@ const Base_URL = "http://localhost:8000";
 
 export class BackendService {
   constructor(private http: HttpClient) {}
-
+  
   // Method to login
   login(user_id: string, password: string) {
     
@@ -18,7 +18,10 @@ export class BackendService {
       "user_id": user_id,
       "password": password
     };
-    return this.http.post(Base_URL+`/login`,data, { withCredentials: true });
+      const headers = new HttpHeaders({
+        'Content-Type': 'application/json'
+    });
+    return this.http.post(Base_URL+`/login`,data, {headers: headers,  withCredentials: true });
   }
 
   isLoggedIn(){

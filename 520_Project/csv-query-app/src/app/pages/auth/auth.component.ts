@@ -43,7 +43,5 @@ export class AuthComponent {
       console.error('Error logging in', error);
     }
   }
-
-  
 }
 

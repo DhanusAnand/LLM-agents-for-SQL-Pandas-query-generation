@@ -67,4 +67,16 @@ export class MainPageComponent {
       { Column1: 'Value 4', Column2: 'Value 5', Column3: 'Value 6' },
     ];
   }
+
+    // Property to manage dropdown visibility
+    dropdownOpen: boolean = false;
+  
+  toggleDropdown() {
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  logout() {
+    console.log('Logging out...');
+    // Add your logout logic here 
+  }
 }
